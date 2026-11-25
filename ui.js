@@ -193,7 +193,21 @@ async function startApp(){
   $("reset-timer").addEventListener("click",resetTimer);
   $("timer-minutes").addEventListener("change",resetTimer);
   resetTimer();
-  await Promise.all([refresh(),loadCvs()]);
+  $("gmail-connect").addEventListener("click",()=>run(async()=>{
+    const info=await api("gmail-connect",{});
+    const url=new URL(info.url);
+    if(url.origin!=="https://accounts.google.com")throw Error("Invalid OAuth destination.");
+    location.assign(url.href);
+  }));
+  $("gmail-refresh").addEventListener("click",()=>run(loadInbox,$("gmail-refresh")));
+  $("gmail-disconnect").addEventListener("click",()=>run(async()=>{
+    if(confirm("Revoke LAUNCHPAD’s read access to Gmail?")){
+      await api("gmail-disconnect",{});
+      $("gmail-list").replaceChildren();
+      await gmailStatus();
+    }
+  }));
+  await Promise.all([refresh(),loadCvs(),gmailStatus()]);
 }
 function csv(items){
   const cell=value=>'"'+String(value??"").replace(/^[=+@-]/,"'$&").replaceAll('"','""')+'"';
@@ -201,7 +215,7 @@ function csv(items){
 }
 async function refresh(){
   [applications,history,practice]=await Promise.all([api("applications"),api("history"),api("practice")]);
-  for(const id of ["ai-app","practice-app"]) selectList(id,applications.map(x=>[x.id,x.company+" · "+x.role]),"No linked application");
+  for(const id of ["ai-app","practice-app","mail-app"]) selectList(id,applications.map(x=>[x.id,x.company+" · "+x.role]),"No linked application");
   const active=applications.filter(x=>!["Offer","Rejected","Withdrawn"].includes(x.stage));
   const upcoming=active.filter(x=>[x.deadline,x.followup].some(d=>d&&d>=today()&&d<=new Date(Date.now()+7*86400000).toISOString().slice(0,10)));
   metrics($("pipeline-metrics"),[["Applications",applications.length],["Active",active.length],["Due in 7 days",upcoming.length],["Offers",applications.filter(x=>x.stage==="Offer").length]]);
@@ -320,4 +334,35 @@ function toggleTimer(){
     remaining=Math.max(0,Math.ceil((deadline-Date.now())/1000));displayClock();
     if(!remaining){clearInterval(timer);timer=null;$("start-timer").textContent="Start";status("Practice timer finished.");}
   },250);
+}
+
+async function gmailStatus(){
+  const value=await api("gmail-status");
+  $("gmail-state").textContent=value.connected?"Gmail is connected. Fetch recent updates when you are ready.":value.configured?
+    "Connect using your Google account. LAUNCHPAD requests read-only access.":
+    "Gmail is optional. Set LAUNCHPAD_GOOGLE_CLIENT to your Desktop OAuth JSON file and restart LAUNCHPAD to connect.";
+  $("gmail-connect").hidden=!value.configured||value.connected;
+  $("gmail-refresh").hidden=!value.connected;
+  $("gmail-disconnect").hidden=!value.connected;
+}
+async function loadInbox(){
+  await gmailStatus();
+  const target=$("gmail-list");target.replaceChildren();
+  const messages=await api("gmail-inbox",{});
+  for(const item of messages){
+    const details=textBlock(target,item.subject||"No subject",[item.from,item.sent,item.snippet,item.stage,item.dates.join(", ")].filter(Boolean).join("\n"));
+    const dates=node("select");dates.setAttribute("aria-label","Candidate deadline");
+    option(dates,"","Keep existing deadline");
+    for(const value of item.dates)option(dates,value,value);
+    if(item.dates.length)details.append(dates);
+    if(item.stage||item.dates.length)details.append(button("Apply selected updates",async()=>{
+      const current=applications.find(x=>String(x.id)===$("mail-app").value);
+      if(!current)throw Error("Choose an application above.");
+      const next={...current,stage:item.stage||current.stage,deadline:dates.value||current.deadline};
+      if(confirm("Update "+current.company+" to "+next.stage+(dates.value?" and set deadline to "+dates.value:"")+"?")){
+        await api("save",next);await refresh();status("Application updated.");
+      }
+    }));
+  }
+  if(!messages.length)empty(target,"No matching recent messages.");
 }

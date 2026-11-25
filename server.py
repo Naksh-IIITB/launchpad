@@ -2,10 +2,12 @@ import argparse
 import base64
 import binascii
 import json
+from html import escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 from core import APP, models
 from feature import handle, initialize, PORT
+from gmail import callback
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -27,7 +29,12 @@ class Handler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin")
         if host not in allowed or (origin and origin != "http://" + host):
             return self.output({"error": "This app accepts requests from its local page only."}, 403)
-        path = urlsplit(self.path).path
+        target = urlsplit(self.path)
+        path = target.path
+        if not post and path == "/gmail-oauth":
+            message, code = callback(target.query)
+            page = '<!doctype html><meta charset="utf-8"><title>LAUNCHPAD Gmail</title><p>' + escape(message) + '</p><a href="/">Return to LAUNCHPAD</a>'
+            return self.output(page.encode(), code, "text/html; charset=utf-8")
         if not post and path in {"/", "/style.css", "/ui.js"}:
             filename, kind = {"/": ("app.html", "text/html"), "/style.css": ("style.css", "text/css"),
                               "/ui.js": ("ui.js", "application/javascript")}[path]
@@ -44,6 +51,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self.output({"error": "Invalid request size."}, 413)
                 payload = json.loads(self.rfile.read(size))
             action = path[5:]
+            if action == "gmail-connect":
+                payload["port"] = self.server.server_port
             if not post and action == "models":
                 try:
                     return self.output(models())
@@ -80,6 +89,12 @@ class Handler(BaseHTTPRequestHandler):
     def chunk(self, item):
         self.wfile.write((json.dumps(item) + "\n").encode())
         self.wfile.flush()
+
+    def log_request(self, code="-", size="-"):
+        if self.path.startswith("/gmail-oauth?"):
+            self.log_message("GET /gmail-oauth %s", code)
+        else:
+            super().log_request(code, size)
 
     def do_GET(self):
         self.route()

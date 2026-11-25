@@ -3,7 +3,7 @@
 <title>LAUNCHPAD</title><link rel="stylesheet" href="/style.css"><script src="/ui.js" defer></script></head>
 <body class="launchpad"><header><button id="sidebar" aria-label="Toggle navigation">Menu</button>
 <span class="brand">LAUNCHPAD</span><span class="spacer"></span><button id="health">Checking Ollama</button>
-<button id="theme">Theme</button></header><div class="shell"><nav aria-label="Workspaces"><button type="button" data-pane="pipeline" aria-current="true">Applications</button><button type="button" data-pane="career" aria-current="false">CV and job fit</button><button type="button" data-pane="practice" aria-current="false">Interview practice</button><button type="button" data-pane="analytics" aria-current="false">Analytics</button></nav>
+<button id="theme">Theme</button></header><div class="shell"><nav aria-label="Workspaces"><button type="button" data-pane="pipeline" aria-current="true">Applications</button><button type="button" data-pane="career" aria-current="false">CV and job fit</button><button type="button" data-pane="practice" aria-current="false">Interview practice</button><button type="button" data-pane="analytics" aria-current="false">Analytics</button><button type="button" data-pane="inbox" aria-current="false">Gmail</button></nav>
 <main><div id="status" role="status" aria-live="polite"></div><section id="pipeline"><h1>Application pipeline</h1><p>Track applications, decisions and follow-up dates in one place.</p>
 <div id="pipeline-metrics" class="metrics"></div><div class="panel"><form id="application"><input type="hidden" name="id">
 <div class="form-grid"><label>Company<input name="company" required></label><label>Role<input name="role" required></label>
@@ -32,4 +32,7 @@
 <section id="analytics" hidden><h1>Career analytics</h1><p>Use stage history to see how many applications reached each milestone.</p><div id="l-metrics" class="metrics"></div>
 <div class="grid"><div class="panel"><h2>Conversion funnel</h2><div id="funnel"></div></div><div class="panel"><h2>Application breakdown</h2><div id="breakdown"></div></div>
 <div class="panel"><h2>Recent stage changes</h2><div id="l-history"></div></div><div class="panel"><h2>Practice performance</h2><div id="performance"></div></div></div></section>
+<section id="inbox" hidden><h1>Gmail updates</h1><p>Review read-only suggestions and choose which updates to apply to a local application.</p>
+<div class="panel"><p id="gmail-state"></p><div class="row"><button id="gmail-connect">Connect Gmail</button><button id="gmail-refresh">Fetch recent updates</button><button id="gmail-disconnect">Disconnect</button></div></div>
+<div class="panel"><label>Application to update<select id="mail-app"></select></label><div id="gmail-list"></div></div></section>
 </main></div></body></html>

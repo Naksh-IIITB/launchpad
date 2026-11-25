@@ -5,6 +5,7 @@ import re
 from datetime import date
 from core import db, rows, chat
 from documents import extract
+import gmail
 
 PORT = 8503
 STAGES = ["Interested", "Preparing", "Applied", "Online assessment", "Technical interview",
@@ -63,6 +64,12 @@ def assist(p):
 
 
 def handle(action, p, post):
+    if not post and action == "gmail-status":
+        return {"configured":bool(gmail.os.environ.get("LAUNCHPAD_GOOGLE_CLIENT")),
+                "connected":gmail.TOKEN_PATH.exists()}
+    if post and action in {"gmail-connect","gmail-inbox","gmail-disconnect"}:
+        return {"gmail-connect":lambda:gmail.begin(int(p["port"])), "gmail-inbox":gmail.inbox,
+                "gmail-disconnect":gmail.disconnect}[action]()
     if not post:
         with db() as con:
             return {
