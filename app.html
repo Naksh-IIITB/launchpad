@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LAUNCHPAD</title><link rel="stylesheet" href="/style.css"><script src="/ui.js" defer></script></head>
+<body class="launchpad"><header><button id="sidebar" aria-label="Toggle navigation">Menu</button>
+<span class="brand">LAUNCHPAD</span><span class="spacer"></span><button id="health">Checking Ollama</button>
+<button id="theme">Theme</button></header><div class="shell"><nav aria-label="Workspaces"><button type="button" data-pane="pipeline" aria-current="true">Applications</button><button type="button" data-pane="career" aria-current="false">CV and job fit</button><button type="button" data-pane="practice" aria-current="false">Interview practice</button><button type="button" data-pane="analytics" aria-current="false">Analytics</button></nav>
+<main><div id="status" role="status" aria-live="polite"></div><section id="pipeline"><h1>Application pipeline</h1><p>Track applications, decisions and follow-up dates in one place.</p>
+<div id="pipeline-metrics" class="metrics"></div><div class="panel"><form id="application"><input type="hidden" name="id">
+<div class="form-grid"><label>Company<input name="company" required></label><label>Role<input name="role" required></label>
+<label>Location<input name="location"></label><label>Application URL<input type="url" name="url"></label><label>Stipend<input name="stipend"></label>
+<label>Deadline<input name="deadline" type="date"></label><label>Follow-up<input name="followup" type="date"></label><label>Tags<input name="tags"></label>
+<label>Priority<select name="priority"><option>Normal</option><option>High</option><option>Low</option></select></label><label>Stage<select name="stage" id="stage"></select></label></div>
+<label>Notes<textarea name="notes"></textarea></label><div class="row"><button class="primary">Save application</button><button id="clear-app" type="button">Clear form</button></div></form></div>
+<div class="panel"><div class="form-grid"><label>Search applications<input id="l-find" type="search"></label><label>Filter stage<select id="l-stage"></select></label>
+<label>View<select id="view"><option value="table">Table</option><option value="board">Kanban</option><option value="calendar">Calendar</option></select></label>
+<label>Import CSV<input id="import-csv" type="file" accept=".csv"></label></div>
+<div class="row"><button id="export-csv">Export CSV</button><button id="csv-template">CSV template</button></div>
+<div id="applications"></div></div></section>
+<section id="career" hidden><h1>CV and job fit</h1><p>Compare CVs with explicit skill requirements and draft application materials with local AI.</p>
+<div class="grid"><div class="panel"><h2>CV versions</h2><form id="cv-upload"><label>CV file<input id="cv-file" type="file" required accept=".pdf,.docx,.txt,.md"></label><button class="primary">Save CV</button></form><div id="cv-list"></div></div>
+<div class="panel"><h2>Required skills</h2><form id="match"><label>CV<select name="cv" id="match-cv" required></select></label><label>Skills, separated by commas<input name="skills" placeholder="Python, SQL, C++" required></label><button class="primary">Calculate match</button></form><div id="match-result"></div></div></div>
+<div class="panel"><h2>Application assistant</h2><form id="assist"><div class="form-grid"><label>Application<select id="ai-app" name="application"></select></label>
+<label>CV<select id="ai-cv" name="cv"></select></label><label>Chat model<select id="model" name="model"></select></label>
+<label>Task<select name="prompt"><option>Draft a concise cover letter using verifiable CV facts. Mark any gaps.</option><option>Suggest truthful CV edits and relevant projects for this role.</option><option>Extract the skills, projects, experience and education from the CV.</option><option>Generate company and role-specific interview questions across relevant DSA, ML, SQL, OS and mathematics.</option><option>Draft a week of preparation based on the role and requirements.</option></select></label></div>
+<label>Job description<textarea name="description"></textarea></label><div class="row"><button class="primary">Generate with Ollama</button><button type="button" id="cancel" hidden>Cancel</button></div></form><pre id="answer"></pre></div></section>
+<section id="practice" hidden><h1>Interview practice</h1><p>Log assessment scores, questions and mistakes by role.</p><div class="grid"><div class="panel"><h2>Practice timer</h2>
+<label>Minutes<input id="timer-minutes" type="number" value="25" min="1" max="180"></label><p id="clock" aria-live="off">25:00</p><div class="row"><button id="start-timer">Start</button><button id="reset-timer">Reset</button></div></div>
+<div class="panel"><h2>Log a session</h2><form id="practice-form"><label>Application<select name="application" id="practice-app"></select></label>
+<label>Topic<input name="topic" required></label><label>Question or assessment<input name="question" required></label><label>Mistake or takeaway<textarea name="mistake"></textarea></label>
+<div class="form-grid"><label>Score (%)<input name="score" type="number" min="0" max="100" step="0.1"></label><label>Minutes<input name="minutes" type="number" min="0" max="1440"></label></div><button class="primary">Save session</button></form></div></div>
+<div class="panel"><h2>Session history</h2><div id="practice-list"></div></div></section>
+<section id="analytics" hidden><h1>Career analytics</h1><p>Use stage history to see how many applications reached each milestone.</p><div id="l-metrics" class="metrics"></div>
+<div class="grid"><div class="panel"><h2>Conversion funnel</h2><div id="funnel"></div></div><div class="panel"><h2>Application breakdown</h2><div id="breakdown"></div></div>
+<div class="panel"><h2>Recent stage changes</h2><div id="l-history"></div></div><div class="panel"><h2>Practice performance</h2><div id="performance"></div></div></div></section>
+</main></div></body></html>
